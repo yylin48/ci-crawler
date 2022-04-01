@@ -1,0 +1,4 @@
+[submodule "vanilla"]
+    path = vanilla
+    url = git@github.com/yylin48/vanilla.git
+    branch = master

@@ -1,0 +1,52 @@
+# for ci-crawler project
+version: '3.9'
+services:
+  # vanilla
+  vanilla-db:
+    restart: always
+    image: postgres:13-alpine
+    volumes:
+      - vanilla-pg-backup-data:/var/lib/postgresql/data
+    env_file:
+      - ./env/.dev
+      - ./env/.vanilla_conf
+    networks:
+      - ci-crawler
+    ports:
+      - "5432:5432"
+  vanilla-redis:
+    restart: always
+    image: redis:6.2.4-alpine
+    volumes:
+      - redis-data:/data
+    networks:
+      - ci-crawler
+    ports:
+      - "6379:6379"
+  vanilla:
+    image: ci-crawler_vanilla
+    restart: always
+    build: ./vanilla
+    depends_on:
+      vanilla-db:
+        condition: service_started
+      vanilla-redis:
+        condition: service_started
+    networks:
+      - ci-crawler
+    env_file:
+      - ./env/.dev
+      - ./env/.vanilla_conf
+    volumes:
+      - ./vanilla:/app/
+    ports:
+      -  "8000:8000"
+    command: >
+      bash -c "python manage.py runserver 0.0.0.0:8000"
+networks:
+  ci-crawler:
+    driver: bridge
+
+volumes:
+  vanilla-pg-backup-data:  # vanilla db
+  redis-data:  # vanilla cache
